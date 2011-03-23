@@ -1,8 +1,9 @@
-== CDP Mud
+## CDP Mud ##
 
 We're making a mud!
 
-== Current Stack
+## Current Stack ##
+
 - [Redis](http://redis.io/)
 - [Node](http://nodejs.org/)
 - [NPM](http://npmjs.org/)
