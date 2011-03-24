@@ -41,35 +41,39 @@ server.addListener("listening", function(){
 
 // Handle WebSocket Requests
 server.addListener("connection", function(conn){
-    var user_key = "user_"+conn.id;
-    sys.log(conn.id);
-    client.set(user_key, "user_"+conn.id, redis.print);
-    client.set("user_"+conn.id+"_messages", 0, redis.print);
+  var user_key = "user_"+conn.id;
+  sys.log(user_key);
+  client.set(user_key, user_key, redis.print);
+  client.get(user_key, redis.print);
 
-    conn.send("** Connected as: user_"+conn.id);
-    conn.send("** Type `/nick USERNAME` to change your username");
+  client.set(user_key+"_messages", 0, redis.print);
 
-    conn.broadcast("** "+client.get("username")+" connected");
+  conn.send("** Connected as: user_"+conn.id);
+  conn.send("** Type `/nick USERNAME` to change your username");
 
-    conn.addListener("message", function(message){
-	if(message[0] == "/"){
-	    // set username
-	    if((matches = message.match(/^\/nick (\w+)$/i)) && matches[1]){
-		client.set("user_"+conn.id, matches[1], redis.print);
-		conn.send("** you are now known as: " + matches[1]);
-		// get message count
-	    } else if(/^\/stats/.test(message)){
-		var messages = client.get("user_"+conn.id+"messages", redis.print);
-		conn.send("** you have sent " + messages + " messages.");
-	    }
-	} else {
-	    sys.log(conn.id);
-	    client.incr("user_"+conn.id+"messages", redis.print);
-	    var username = client.get("user_"+conn.id, redis.print);
-	    sys.log(username);
-	    server.broadcast(username + ": " + message);
-	}
-    });
+  client.get(user_key, function(err, username) {
+    server.broadcast("** "+ username + " connected");
+  });
+
+  conn.addListener("message", function(message){
+    if(message[0] == "/"){
+      // set username
+      if((matches = message.match(/^\/nick (\w+)$/i)) && matches[1]){
+	client.set(user_key, matches[1], redis.print);
+	conn.send("** you are now known as: " + matches[1]);
+	// get message count
+      } else if(/^\/stats/.test(message)){
+	client.get(user_key+"messages", function(err, count) {
+	  conn.send("** you have sent " + count + " messages.");
+	});
+      }
+    } else {
+      client.incr(user_key+"messages", redis.print);
+      client.get(user_key, function(err, username) {
+	server.broadcast(username + ": " + message);
+      });
+    }
+  });
 });
 
 server.addListener("close", function(conn){
