@@ -1,19 +1,19 @@
 var Room = function(title, desc, exits) {
-  var _title = "";
-  var _desc = "";
-  var _exits = [];
+  this.title = title;
+  this.desc = desc;
+  this.exits = exits;
 
-  var format_exits = function() {
-    _exits.join(" ");
+  this.format_exits = function() {
+    return this.exits.join(", ");
   };
 
-  var display = function() {
+  this.display = function() {
     return "\n"
-      + _title
+      + this.title
       + "\n"
-      + _desc
+      + this.desc
       + "\n"
-      + format_exits;
+      + this.format_exits();
   };
 };
 
