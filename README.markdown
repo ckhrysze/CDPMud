@@ -11,3 +11,5 @@ We're making a mud!
 > npm install redis
 - [node-websocket-server](https://github.com/miksago/node-websocket-server)
 > npm install websocket-server
+- [jasmine-node](https://github.com/mhevery/jasmine-node)
+> npm install jasmine-node
