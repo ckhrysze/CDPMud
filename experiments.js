@@ -13,4 +13,6 @@ var first_room = new Room("title", "description", ['e', 'w']);
 util.log(first_room.display());
 
 
+util.log("asdf".length);
+
 process.exit();

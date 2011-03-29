@@ -1,83 +1,45 @@
-var sys = require("util")
-  , http = require("http")
-  , fs = require("fs")
-  , path = require("path")
-  , ws = require("websocket-server")
+var util = require("util")
+  , server = require("./server")
   , redis = require("redis")
-  , client = redis.createClient();
+  , db = redis.createClient();
 
-var httpServer = http.createServer(function(req, res){
-  if(req.method == "GET"){
-    if( req.url.indexOf("favicon") > -1 ){
-      res.writeHead(200, {'Content-Type': 'image/x-icon', 'Connection': 'close'});
-      res.end("");
+function pendingCharacterName(conn) {
+  conn.send("Please enter your character name:");
+
+  conn.addListener("message", function(message) {
+    if (message.length < 4) {
+      conn.send("Character names must be at least 4 characters");
     } else {
-      res.writeHead(200, {'Content-Type': 'text/html', 'Connection': 'close'});
-      fs.createReadStream( path.normalize(path.join(__dirname, "client.html")), {
-        'flags': 'r',
-        'encoding': 'binary',
-        'mode': 0666,
-        'bufferSize': 4 * 1024
-      }).addListener("data", function(chunk){
-        res.write(chunk, 'binary');
-      }).addListener("end",function() {
-        res.end();
-      });
+      conn.removeAllListeners();
+      pendingPassword(message, conn);
     }
-  } else {
-    res.writeHead(404);
-    res.end();
-  }
-});
+  });
+}
 
+function pendingPassword(name, conn) {
+  conn.send("Please enter your password:");
 
-var server = ws.createServer({
-  server: httpServer
-});
+  conn.addListener("message", function(message) {
+    db.get("character" + name, function(error, password) {
+	if (null == password) {
+	    // WIP: Confirm new character
+	}
+    });
+  });
+}
 
-server.addListener("listening", function(){
-  sys.log("Listening for connections.");
-});
+var mud = server.setup();
 
 // Handle WebSocket Requests
-server.addListener("connection", function(conn){
-  var user_key = "user_"+conn.id;
-  sys.log(user_key);
-  client.set(user_key, user_key, redis.print);
-  client.get(user_key, redis.print);
+mud.addListener("connection", function(conn) {
 
-  client.set(user_key+"_messages", 0, redis.print);
+  conn.send("Welcome to CDP Mud");
 
-  conn.send("** Connected as: user_"+conn.id);
-  conn.send("** Type `/nick USERNAME` to change your username");
-
-  client.get(user_key, function(err, username) {
-    server.broadcast("** "+ username + " connected");
-  });
-
-  conn.addListener("message", function(message){
-    if(message[0] == "/"){
-      // set username
-      if((matches = message.match(/^\/nick (\w+)$/i)) && matches[1]){
-	client.set(user_key, matches[1], redis.print);
-	conn.send("** you are now known as: " + matches[1]);
-	// get message count
-      } else if(/^\/stats/.test(message)){
-	client.get(user_key+"messages", function(err, count) {
-	  conn.send("** you have sent " + count + " messages.");
-	});
-      }
-    } else {
-      client.incr(user_key+"messages", redis.print);
-      client.get(user_key, function(err, username) {
-	server.broadcast(username + ": " + message);
-      });
-    }
-  });
+  pendingCharacterName(conn);
 });
 
-server.addListener("close", function(conn){
-  server.broadcast("<"+conn.id+"> disconnected");
+mud.addListener("close", function(conn){
+  mud.broadcast("<"+conn.id+"> disconnected");
 });
 
-server.listen(8000);
+mud.listen(8000);
