@@ -7,12 +7,21 @@ var util = require("util")
   , client = redis.createClient();
 
 var Room = require('./room');
-util.log(Room);
+// util.log(Room);
 
 var first_room = new Room("title", "description", ['e', 'w']);
-util.log(first_room.display());
+// util.log(first_room.display());
 
 
-util.log("asdf".length);
+var a = {
+  b: 3,
+  c: function() {
+      return 65;
+  }
+};
+
+util.log(util.inspect(a));
+util.log(a.b);
+util.log(a.c());
 
 process.exit();
