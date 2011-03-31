@@ -6,17 +6,13 @@ var Character = function(name, conn) {
   });
 };
 
-var character = {
-  load: function(name, conn) {
-    new Character(name, conn);
-  }
-  ,
-  create: function(name, conn) {
-    conn.send("Created character: " + name);
-    conn.addListener("message", function(message) {
-	conn.send("Unrecognized command: " + message);
-    });
-  }
+exports.load = function(name, conn) {
+  new Character(name, conn);
 };
 
-module.exports = character;
+exports.create = function(name, conn) {
+  conn.send("Created character: " + name);
+  conn.addListener("message", function(message) {
+    conn.send("Unrecognized command: " + message);
+  });
+};
