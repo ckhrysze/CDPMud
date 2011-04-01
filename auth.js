@@ -11,15 +11,15 @@ var Auth = function(conn) {
   this.login = function() {
     var self = this;
     conn.send('Please enter your character name:');
-    conn.addListener('message', function(msg) { self.nameListener(msg); });
+    conn.once('message', function(msg) { self.nameListener(msg); });
   };
 
   this.nameListener = function(message) {
     if (message.length < 4) {
       conn.send('Character names must be at least 4 characters');
+      this.login();
     } else {
       this.name = message;
-      conn.removeListener('message', this.nameListener);
       this.pendingPassword();
     }
   };
@@ -27,28 +27,29 @@ var Auth = function(conn) {
   this.pendingPassword = function() {
     var self = this;
     conn.send('Please enter your password:');
-    conn.addListener('message', function(msg) { self.passListener(msg); });
+    conn.once('message', function(msg) { self.passListener(msg); });
   };
 
   this.passListener = function(message) {
-    db.get('login_' + name, function(error, password) {
+    var self = this;
+    db.get('login_' + this.name, function(error, password) {
       if (null != password) {
 	// Password set before, validate
 	if (password == message) {
-	  conn.removeListener('message', this.passListener);
-	  character.load(name, conn);
+	  character.load(self.name, conn);
 	} else { // bad password
-	  attempts += 1;
-	  if (attempts > 3) {
-	    conn.send('Too many attempts, bye bye now.');
-	    conn.close();
+	  self.attempts += 1;
+	  if (self.attempts > 3) {
+	    self.conn.send('Too many attempts, bye bye now.');
+	    self.conn.close();
+	    return;
 	  } else {
-	    conn.send('Invalid password, please try again:');
+	    self.conn.send('Invalid password, please try again:');
+	    self.pendingPassword();
 	  }
 	}
       } else { // password not set, new character
-	conn.removeListener('message', this.passListener);
-	character.create(name, conn);
+	character.create(self.name, message, conn);
       }
     });
   };

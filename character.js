@@ -1,3 +1,7 @@
+var util = require('util');
+var redis = require('redis');
+var db = redis.createClient();
+
 var Character = function(name, conn) {
   this.name = name;
   this.conn = conn;
@@ -7,11 +11,13 @@ var Character = function(name, conn) {
 };
 
 exports.load = function(name, conn) {
-  new Character(name, conn);
+  conn.send("Welcome back,  " + name);
+  //new Character(name, conn);
 };
 
-exports.create = function(name, conn) {
-  conn.send("Created character: " + name);
+exports.create = function(name, password, conn) {
+  db.set('login_' + name, password);
+  conn.send("Created character " + name + " with password " + password);
   conn.addListener("message", function(message) {
     conn.send("Unrecognized command: " + message);
   });
