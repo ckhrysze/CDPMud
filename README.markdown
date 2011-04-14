@@ -13,3 +13,5 @@ We're making a mud!
 > npm install websocket-server
 - [jasmine-node](https://github.com/mhevery/jasmine-node)
 > npm install jasmine-node
+- [coffee script](http://jashkenas.github.com/coffee-script/)
+> npm install coffee-script
