@@ -1,0 +1,9 @@
+{   "name" : "cdpmud"
+  , "version" : "0.0.1"
+  , "dependencies" : {
+        "redis" : "latest"
+      , "websocket-server" : "1.4.04"
+      , "jasmine-node" : "latest"
+      , "coffee-script" : "latest"
+  }
+}
